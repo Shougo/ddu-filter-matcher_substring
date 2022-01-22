@@ -1,0 +1,47 @@
+*ddu-filter-matcher_substring.txt*	Substring matcher for ddu.vim
+
+Author: Shougo <Shougo.Matsu at gmail.com>
+License: MIT license
+
+CONTENTS				*ddu-filter-matcher_substring*
+
+Introduction		|ddu-filter-matcher_substring-introduction|
+Install			|ddu-filter-matcher_substring-install|
+Examples		|ddu-filter-matcher_substring-examples|
+Params			|ddu-filter-matcher_substring-params|
+
+
+==============================================================================
+INTRODUCTION			*ddu-filter-matcher_substring-introduction*
+
+This matcher filters substring matched items.
+
+
+==============================================================================
+INSTALL				*ddu-filter-matcher_substring-install*
+
+Please install both "ddu.vim" and "denops.vim".
+
+https://github.com/Shougo/ddu.vim
+https://github.com/vim-denops/denops.vim
+
+
+==============================================================================
+EXAMPLES			*ddu-filter-matcher_substring-examples*
+>
+	" Use matcher_substring filter.
+	call ddu#custom#patch_global({
+	    \   'sourceOptions': {
+	    \     '_': {
+	    \       'matchers': ['matcher_substring'],
+	    \     },
+	    \   }
+	    \ })
+<
+
+==============================================================================
+PARAMS				*ddu-filter-matcher_substring-params*
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:noet:fen:noet:
