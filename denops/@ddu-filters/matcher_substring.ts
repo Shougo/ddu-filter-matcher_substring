@@ -47,18 +47,22 @@ export class Filter extends BaseFilter<Params> {
             : display;
           const start = matcherKey.indexOf(input);
 
-          const highlights =
-            item.highlights?.filter((hl) => hl.name != "matched") ?? [];
-          highlights.push({
-            name: "matched",
-            "hl_group": args.filterParams.highlightMatched,
-            col: start + 1,
-            width: inputWidth,
-          });
-          return {
-            ...item,
-            highlights: highlights,
-          };
+          if (start >= 0) {
+            const highlights =
+              item.highlights?.filter((hl) => hl.name != "matched") ?? [];
+            highlights.push({
+              name: "matched",
+              "hl_group": args.filterParams.highlightMatched,
+              col: start + 1,
+              width: inputWidth,
+            });
+            return {
+              ...item,
+              highlights: highlights,
+            };
+          } else {
+            return item;
+          }
         },
       ),
     );
