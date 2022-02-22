@@ -41,12 +41,14 @@ export class Filter extends BaseFilter<Params> {
     return Promise.resolve(
       items.map(
         (item) => {
+          const display = item.display ?? item.word;
           const matcherKey = args.sourceOptions.ignoreCase
-            ? item.matcherKey.toLowerCase()
-            : item.matcherKey;
+            ? display.toLowerCase()
+            : display;
           const start = matcherKey.indexOf(input);
 
-          let highlights = item.highlights ?? [];
+          const highlights =
+            item.highlights?.filter((hl) => hl.name != "matched") ?? [];
           highlights.push({
             name: "matched",
             "hl_group": args.filterParams.highlightMatched,
@@ -55,8 +57,8 @@ export class Filter extends BaseFilter<Params> {
           });
           return {
             ...item,
-            highlights: highlights
-          }
+            highlights: highlights,
+          };
         },
       ),
     );
