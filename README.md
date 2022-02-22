@@ -25,4 +25,14 @@ call ddu#custom#patch_global({
     \     },
     \   }
     \ })
+
+" Enable highlight matched text
+" Note: It is slow
+call ddu#custom#patch_global({
+    \   'filterParams': {
+    \     'matcher_substring': {
+    \       'highlightMatched': 'Search',
+    \     },
+    \   }
+    \ })
 ```

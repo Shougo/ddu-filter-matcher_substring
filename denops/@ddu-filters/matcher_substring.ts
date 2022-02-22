@@ -3,14 +3,17 @@ import {
   DduItem,
   SourceOptions,
 } from "https://deno.land/x/ddu_vim@v0.13/types.ts";
-import { Denops } from "https://deno.land/x/ddu_vim@v0.13/deps.ts";
+import { Denops, fn } from "https://deno.land/x/ddu_vim@v0.13/deps.ts";
 
-type Params = Record<never, never>;
+type Params = {
+  highlightMatched: string;
+};
 
 export class Filter extends BaseFilter<Params> {
-  filter(args: {
+  async filter(args: {
     denops: Denops;
     sourceOptions: SourceOptions;
+    filterParams: Params;
     input: string;
     items: DduItem[];
   }): Promise<DduItem[]> {
@@ -21,16 +24,47 @@ export class Filter extends BaseFilter<Params> {
     const input = args.sourceOptions.ignoreCase
       ? args.input.toLowerCase()
       : args.input;
-    return args.sourceOptions.ignoreCase
-      ? Promise.resolve(args.items.filter(
+
+    const items = args.sourceOptions.ignoreCase
+      ? args.items.filter(
         (item) => item.matcherKey.toLowerCase().includes(input),
-      ))
-      : Promise.resolve(args.items.filter(
+      )
+      : args.items.filter(
         (item) => item.matcherKey.includes(input),
-      ));
+      );
+    if (args.filterParams.highlightMatched == "") {
+      return Promise.resolve(items);
+    }
+
+    // Highlight matched text
+    const inputWidth = await fn.strwidth(args.denops, input) as number;
+    return Promise.resolve(
+      items.map(
+        (item) => {
+          const matcherKey = args.sourceOptions.ignoreCase
+            ? item.matcherKey.toLowerCase()
+            : item.matcherKey;
+          const start = matcherKey.indexOf(input);
+
+          let highlights = item.highlights ?? [];
+          highlights.push({
+            name: "matched",
+            "hl_group": args.filterParams.highlightMatched,
+            col: start + 1,
+            width: inputWidth,
+          });
+          return {
+            ...item,
+            highlights: highlights
+          }
+        },
+      ),
+    );
   }
 
   params(): Params {
-    return {};
+    return {
+      highlightMatched: "",
+    };
   }
 }
