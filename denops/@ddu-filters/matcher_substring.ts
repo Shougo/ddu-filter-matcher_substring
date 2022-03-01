@@ -2,12 +2,16 @@ import {
   BaseFilter,
   DduItem,
   SourceOptions,
-} from "https://deno.land/x/ddu_vim@v0.13/types.ts";
-import { Denops, fn } from "https://deno.land/x/ddu_vim@v0.13/deps.ts";
+} from "https://deno.land/x/ddu_vim@v1.1.0/types.ts";
+import { Denops } from "https://deno.land/x/ddu_vim@v1.1.0/deps.ts";
 
 type Params = {
   highlightMatched: string;
 };
+
+function charposToBytepos(input: string, pos: number): number {
+  return (new TextEncoder()).encode(input.slice(0, pos)).length;
+}
 
 export class Filter extends BaseFilter<Params> {
   async filter(args: {
@@ -25,19 +29,25 @@ export class Filter extends BaseFilter<Params> {
       ? args.input.toLowerCase()
       : args.input;
 
-    const items = args.sourceOptions.ignoreCase
-      ? args.items.filter(
-        (item) => item.matcherKey.toLowerCase().includes(input),
-      )
-      : args.items.filter(
-        (item) => item.matcherKey.includes(input),
-      );
+    let items = args.items;
+
+    // Split input for matchers
+    const inputs = input.split(/(?<!\\)\s+/).filter((x) => x != "").map((x) =>
+      x.replaceAll(/\\(?=\s)/g, "")
+    );
+    for (const subInput of inputs) {
+      items = args.sourceOptions.ignoreCase
+        ? items.filter(
+          (item) => item.matcherKey.toLowerCase().includes(subInput),
+        )
+        : items.filter((item) => item.matcherKey.includes(subInput));
+    }
+
     if (args.filterParams.highlightMatched == "") {
       return Promise.resolve(items);
     }
 
     // Highlight matched text
-    const inputWidth = await fn.strwidth(args.denops, input) as number;
     return Promise.resolve(
       items.map(
         (item) => {
@@ -45,24 +55,24 @@ export class Filter extends BaseFilter<Params> {
           const matcherKey = args.sourceOptions.ignoreCase
             ? display.toLowerCase()
             : display;
-          const start = matcherKey.indexOf(input);
-
-          if (start >= 0) {
-            const highlights =
-              item.highlights?.filter((hl) => hl.name != "matched") ?? [];
-            highlights.push({
-              name: "matched",
-              "hl_group": args.filterParams.highlightMatched,
-              col: start + 1,
-              width: inputWidth,
-            });
-            return {
-              ...item,
-              highlights: highlights,
-            };
-          } else {
-            return item;
+          let highlights =
+            item.highlights?.filter((hl) => hl.name != "matched") ?? [];
+          for (const subInput of inputs) {
+            const start = matcherKey.indexOf(subInput);
+            if (start >= 0) {
+              highlights.push({
+                name: "matched",
+                "hl_group": args.filterParams.highlightMatched,
+                col: charposToBytepos(matcherKey, start) + 1,
+                width: (new TextEncoder()).encode(subInput).length,
+              });
+            }
           }
+
+          return {
+            ...item,
+            highlights: highlights,
+          };
         },
       ),
     );

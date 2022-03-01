@@ -16,6 +16,8 @@ INTRODUCTION			*ddu-filter-matcher_substring-introduction*
 
 This matcher filters substring matched items.
 
+It supports narrowing inputs by spaces.
+
 
 ==============================================================================
 INSTALL				*ddu-filter-matcher_substring-install*
@@ -56,6 +58,7 @@ PARAMS				*ddu-filter-matcher_substring-params*
 highlightMatched (string)
 		The highlight of matched text.
 		Note: If you set it, the matching will be slower.
+		Note: It supports multibyte text.
 
 		Default: ""
 
