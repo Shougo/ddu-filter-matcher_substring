@@ -2,11 +2,12 @@ import {
   BaseFilter,
   DduItem,
   SourceOptions,
-} from "https://deno.land/x/ddu_vim@v1.1.0/types.ts";
-import { Denops } from "https://deno.land/x/ddu_vim@v1.1.0/deps.ts";
+} from "https://deno.land/x/ddu_vim@v1.5.0/types.ts";
+import { Denops } from "https://deno.land/x/ddu_vim@v1.5.0/deps.ts";
 
 type Params = {
   highlightMatched: string;
+  limit: number;
 };
 
 function charposToBytepos(input: string, pos: number): number {
@@ -35,12 +36,24 @@ export class Filter extends BaseFilter<Params> {
     const inputs = input.split(/(?<!\\)\s+/).filter((x) => x != "").map((x) =>
       x.replaceAll(/\\(?=\s)/g, "")
     );
+    const limit = args.filterParams.limit;
     for (const subInput of inputs) {
-      items = args.sourceOptions.ignoreCase
-        ? items.filter(
-          (item) => item.matcherKey.toLowerCase().includes(subInput),
-        )
-        : items.filter((item) => item.matcherKey.includes(subInput));
+      const filtered = [];
+      let filteredLen = 0;
+      for (const item of items) {
+        const key = args.sourceOptions.ignoreCase
+          ? item.matcherKey.toLowerCase()
+          : item.matcherKey;
+        if (key.includes(subInput)) {
+          filtered.push(item);
+          filteredLen++;
+          if (filteredLen >= limit) {
+            break;
+          }
+        }
+      }
+
+      items = filtered;
     }
 
     if (args.filterParams.highlightMatched == "") {
@@ -81,6 +94,7 @@ export class Filter extends BaseFilter<Params> {
   params(): Params {
     return {
       highlightMatched: "",
+      limit: 1000,
     };
   }
 }
