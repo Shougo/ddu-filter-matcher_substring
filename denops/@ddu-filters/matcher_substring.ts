@@ -71,7 +71,7 @@ export class Filter extends BaseFilter<Params> {
           let highlights =
             item.highlights?.filter((hl) => hl.name != "matched") ?? [];
           for (const subInput of inputs) {
-            const start = matcherKey.indexOf(subInput);
+            const start = matcherKey.lastIndexOf(subInput);
             if (start >= 0) {
               highlights.push({
                 name: "matched",
