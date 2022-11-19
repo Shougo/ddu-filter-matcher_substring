@@ -17,21 +17,20 @@ https://github.com/Shougo/ddu.vim
 ## Configuration
 
 ```vim
-" Use matcher_substring filter.
-call ddu#custom#patch_global({
-    \   'sourceOptions': {
-    \     '_': {
-    \       'matchers': ['matcher_substring'],
+call ddu#custom#patch_global(#{
+    \   sourceOptions: #{
+    \     _: #{
+    \       matchers: ['matcher_substring'],
     \     },
     \   }
     \ })
 
 " Enable highlight matched text
 " Note: It is slow
-call ddu#custom#patch_global({
-    \   'filterParams': {
-    \     'matcher_substring': {
-    \       'highlightMatched': 'Search',
+call ddu#custom#patch_global(#{
+    \   filterParams: #{
+    \     matcher_substring: #{
+    \       highlightMatched: 'Search',
     \     },
     \   }
     \ })
