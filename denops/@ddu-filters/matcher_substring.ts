@@ -15,7 +15,8 @@ function charposToBytepos(input: string, pos: number): number {
 }
 
 export class Filter extends BaseFilter<Params> {
-  async filter(args: {
+  // deno-lint-ignore require-await
+  override async filter(args: {
     denops: Denops;
     sourceOptions: SourceOptions;
     filterParams: Params;
@@ -68,7 +69,7 @@ export class Filter extends BaseFilter<Params> {
           const matcherKey = args.sourceOptions.ignoreCase
             ? display.toLowerCase()
             : display;
-          let highlights =
+          const highlights =
             item.highlights?.filter((hl) => hl.name != "matched") ?? [];
           for (const subInput of inputs) {
             const start = matcherKey.lastIndexOf(subInput);
@@ -91,7 +92,7 @@ export class Filter extends BaseFilter<Params> {
     );
   }
 
-  params(): Params {
+  override params(): Params {
     return {
       highlightMatched: "",
       limit: 1000,
