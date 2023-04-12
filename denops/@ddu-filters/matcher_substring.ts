@@ -27,35 +27,23 @@ export class Filter extends BaseFilter<Params> {
       return Promise.resolve(args.items);
     }
 
-    const input = args.sourceOptions.ignoreCase
-      ? args.input.toLowerCase()
-      : args.input;
-
-    let items = args.items;
+    const ignoreCase = args.sourceOptions.ignoreCase;
+    const input = ignoreCase ? args.input.toLowerCase() : args.input;
 
     // Split input for matchers
     const inputs = input.split(/(?<!\\)\s+/).filter((x) => x != "").map((x) =>
       x.replaceAll(/\\(?=\s)/g, "")
     );
     const limit = args.filterParams.limit;
-    for (const subInput of inputs) {
-      const filtered = [];
-      let filteredLen = 0;
-      for (const item of items) {
-        const key = args.sourceOptions.ignoreCase
-          ? item.matcherKey.toLowerCase()
-          : item.matcherKey;
-        if (key.includes(subInput)) {
-          filtered.push(item);
-          filteredLen++;
-          if (filteredLen >= limit) {
-            break;
-          }
-        }
-      }
-
-      items = filtered.slice(0, limit);
-    }
+    const items = inputs.reduce(
+      (items, input) =>
+        items.filter(({ matcherKey }) =>
+          ignoreCase
+            ? matcherKey.toLowerCase().includes(input)
+            : matcherKey.includes(input)
+        ),
+      args.items,
+    ).slice(0, limit);
 
     if (args.filterParams.highlightMatched == "") {
       return Promise.resolve(items);
@@ -66,9 +54,7 @@ export class Filter extends BaseFilter<Params> {
       items.map(
         (item) => {
           const display = item.display ?? item.word;
-          const matcherKey = args.sourceOptions.ignoreCase
-            ? display.toLowerCase()
-            : display;
+          const matcherKey = ignoreCase ? display.toLowerCase() : display;
           const highlights =
             item.highlights?.filter((hl) => hl.name != "matched") ?? [];
           for (const subInput of inputs) {
