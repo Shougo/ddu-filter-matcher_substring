@@ -2,8 +2,8 @@ import {
   BaseFilter,
   DduItem,
   SourceOptions,
-} from "https://deno.land/x/ddu_vim@v2.7.0/types.ts";
-import { Denops } from "https://deno.land/x/ddu_vim@v2.7.0/deps.ts";
+} from "https://deno.land/x/ddu_vim@v2.8.3/types.ts";
+import { Denops } from "https://deno.land/x/ddu_vim@v2.8.3/deps.ts";
 
 type Params = {
   highlightMatched: string;
@@ -62,7 +62,7 @@ export class Filter extends BaseFilter<Params> {
             if (start >= 0) {
               highlights.push({
                 name: "matched",
-                "hl_group": args.filterParams.highlightMatched,
+                hl_group: args.filterParams.highlightMatched,
                 col: charposToBytepos(matcherKey, start) + 1,
                 width: (new TextEncoder()).encode(subInput).length,
               });
