@@ -31,7 +31,7 @@ export class Filter extends BaseFilter<Params> {
     const input = ignoreCase ? args.input.toLowerCase() : args.input;
 
     // Split input for matchers
-    const inputs = input.split(/(?<!\\)\s+/).filter((x) => x != "").map((x) =>
+    const inputs = input.split(/(?<!\\)\s+/).filter((x) => x !== "").map((x) =>
       x.replaceAll(/\\(?=\s)/g, "")
     );
     const limit = args.filterParams.limit;
@@ -45,7 +45,7 @@ export class Filter extends BaseFilter<Params> {
       args.items,
     ).slice(0, limit);
 
-    if (args.filterParams.highlightMatched == "") {
+    if (args.filterParams.highlightMatched === "") {
       return Promise.resolve(items);
     }
 
@@ -56,7 +56,7 @@ export class Filter extends BaseFilter<Params> {
           const display = item.display ?? item.word;
           const matcherKey = ignoreCase ? display.toLowerCase() : display;
           const highlights =
-            item.highlights?.filter((hl) => hl.name != "matched") ?? [];
+            item.highlights?.filter((hl) => hl.name !== "matched") ?? [];
           for (const subInput of inputs) {
             const start = matcherKey.lastIndexOf(subInput);
             if (start >= 0) {
