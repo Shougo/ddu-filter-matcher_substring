@@ -2,8 +2,8 @@ import {
   BaseFilter,
   DduItem,
   SourceOptions,
-} from "https://deno.land/x/ddu_vim@v2.8.3/types.ts";
-import { Denops } from "https://deno.land/x/ddu_vim@v2.8.3/deps.ts";
+} from "https://deno.land/x/ddu_vim@v3.0.2/types.ts";
+import { Denops } from "https://deno.land/x/ddu_vim@v3.0.2/deps.ts";
 
 type Params = {
   highlightMatched: string;
@@ -15,8 +15,7 @@ function charposToBytepos(input: string, pos: number): number {
 }
 
 export class Filter extends BaseFilter<Params> {
-  // deno-lint-ignore require-await
-  override async filter(args: {
+  override filter(args: {
     denops: Denops;
     sourceOptions: SourceOptions;
     filterParams: Params;
