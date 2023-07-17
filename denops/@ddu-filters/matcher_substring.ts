@@ -2,8 +2,8 @@ import {
   BaseFilter,
   DduItem,
   SourceOptions,
-} from "https://deno.land/x/ddu_vim@v3.0.2/types.ts";
-import { Denops } from "https://deno.land/x/ddu_vim@v3.0.2/deps.ts";
+} from "https://deno.land/x/ddu_vim@v3.4.2/types.ts";
+import { Denops } from "https://deno.land/x/ddu_vim@v3.4.2/deps.ts";
 
 type Params = {
   highlightMatched: string;
@@ -70,7 +70,7 @@ export class Filter extends BaseFilter<Params> {
 
           return {
             ...item,
-            highlights: highlights,
+            highlights,
           };
         },
       ),
