@@ -54,8 +54,7 @@ export class Filter extends BaseFilter<Params> {
         (item) => {
           const display = item.display ?? item.word;
           const matcherKey = ignoreCase ? display.toLowerCase() : display;
-          const highlights =
-            item.highlights?.filter((hl) => hl.name !== "matched") ?? [];
+          const highlights = item.highlights ?? [];
           for (const subInput of inputs) {
             const start = matcherKey.lastIndexOf(subInput);
             if (start >= 0) {
