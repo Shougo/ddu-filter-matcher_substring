@@ -2,8 +2,8 @@ import {
   BaseFilter,
   DduItem,
   SourceOptions,
-} from "https://deno.land/x/ddu_vim@v3.4.2/types.ts";
-import { Denops } from "https://deno.land/x/ddu_vim@v3.4.2/deps.ts";
+} from "https://deno.land/x/ddu_vim@v3.4.6/types.ts";
+import { Denops } from "https://deno.land/x/ddu_vim@v3.4.6/deps.ts";
 
 type Params = {
   highlightMatched: string;
@@ -26,7 +26,8 @@ export class Filter extends BaseFilter<Params> {
       return Promise.resolve(args.items);
     }
 
-    const ignoreCase = args.sourceOptions.ignoreCase;
+    const ignoreCase = args.sourceOptions.ignoreCase &&
+      !(args.sourceOptions.smartCase && /[A-Z]/.test(args.input));
     const input = ignoreCase ? args.input.toLowerCase() : args.input;
 
     // Split input for matchers
