@@ -1,8 +1,8 @@
 import {
   type DduItem,
   type SourceOptions,
-} from "jsr:@shougo/ddu-vim@~6.1.0/types";
-import { BaseFilter } from "jsr:@shougo/ddu-vim@~6.1.0/filter";
+} from "jsr:@shougo/ddu-vim@~7.0.0/types";
+import { BaseFilter } from "jsr:@shougo/ddu-vim@~7.0.0/filter";
 
 import type { Denops } from "jsr:@denops/core@~7.0.0";
 
@@ -38,11 +38,18 @@ export class Filter extends BaseFilter<Params> {
     const limit = args.filterParams.limit;
     const items = inputs.reduce(
       (items, input) =>
-        items.filter(({ matcherKey }) =>
-          ignoreCase
-            ? matcherKey.toLowerCase().includes(input)
-            : matcherKey.includes(input)
-        ),
+        items.filter(({ matcherKey }) => {
+          if (input.startsWith("!")) {
+            const negatedInput = input.slice(1);
+            return ignoreCase
+              ? !matcherKey.toLowerCase().includes(negatedInput.toLowerCase())
+              : !matcherKey.includes(negatedInput);
+          } else {
+            return ignoreCase
+              ? matcherKey.toLowerCase().includes(input.toLowerCase())
+              : matcherKey.includes(input);
+          }
+        }),
       args.items,
     ).slice(0, limit);
 
@@ -58,6 +65,11 @@ export class Filter extends BaseFilter<Params> {
           const matcherKey = ignoreCase ? display.toLowerCase() : display;
           const highlights = item.highlights ?? [];
           for (const subInput of inputs) {
+            // Skip ignored input
+            if (subInput.startsWith("!")) {
+              continue;
+            }
+
             const start = matcherKey.lastIndexOf(subInput);
             if (start >= 0) {
               highlights.push({

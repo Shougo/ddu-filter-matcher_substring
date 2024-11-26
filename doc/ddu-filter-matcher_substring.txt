@@ -16,7 +16,7 @@ INTRODUCTION			*ddu-filter-matcher_substring-introduction*
 
 This matcher filters substring matched items.
 
-It supports narrowing inputs by spaces.
+It supports narrowing inputs by spaces and "!" prefixed negative match.
 
 
 ==============================================================================
