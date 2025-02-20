@@ -44,7 +44,7 @@ EXAMPLES			*ddu-filter-matcher_substring-examples*
 	call ddu#custom#patch_global(#{
 	    \   filterParams: #{
 	    \     matcher_substring: #{
-	    \       highlightMatched: 'Search',
+	    \       highlightMatched: 'PmenuMatch',
 	    \     },
 	    \   }
 	    \ })
