@@ -1,8 +1,8 @@
 import {
   type DduItem,
   type SourceOptions,
-} from "jsr:@shougo/ddu-vim@~7.0.0/types";
-import { BaseFilter } from "jsr:@shougo/ddu-vim@~7.0.0/filter";
+} from "jsr:@shougo/ddu-vim@~10.3.0/types";
+import { BaseFilter } from "jsr:@shougo/ddu-vim@~10.3.0/filter";
 
 import type { Denops } from "jsr:@denops/core@~7.0.0";
 
@@ -44,6 +44,15 @@ export class Filter extends BaseFilter<Params> {
             return ignoreCase
               ? !matcherKey.toLowerCase().includes(negatedInput.toLowerCase())
               : !matcherKey.includes(negatedInput);
+          } else if (input.startsWith("<")) {
+            // NOTE: If the input starts with "<", perform a regular expression
+            // match with word boundaries.
+            const escaped = input.slice(1).replace(
+              /[.*+?^${}()|[\]\\]/g,
+              "\\$&",
+            );
+            const regex = new RegExp(`\\b${escaped}`, ignoreCase ? "i" : "");
+            return regex.test(matcherKey);
           } else {
             return ignoreCase
               ? matcherKey.toLowerCase().includes(input.toLowerCase())

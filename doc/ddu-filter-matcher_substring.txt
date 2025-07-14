@@ -3,7 +3,7 @@
 Author: Shougo <Shougo.Matsu at gmail.com>
 License: MIT license
 
-CONTENTS				*ddu-filter-matcher_substring*
+CONTENTS                                        *ddu-filter-matcher_substring*
 
 Introduction		|ddu-filter-matcher_substring-introduction|
 Install			|ddu-filter-matcher_substring-install|
@@ -12,15 +12,18 @@ Params			|ddu-filter-matcher_substring-params|
 
 
 ==============================================================================
-INTRODUCTION			*ddu-filter-matcher_substring-introduction*
+INTRODUCTION                       *ddu-filter-matcher_substring-introduction*
 
 This matcher filters substring matched items.
 
 It supports narrowing inputs by spaces and "!" prefixed negative match.
 
+If the input starts with "<", perform a regular expression match with word
+boundaries.
+
 
 ==============================================================================
-INSTALL				*ddu-filter-matcher_substring-install*
+INSTALL                                 *ddu-filter-matcher_substring-install*
 
 Please install both "ddu.vim" and "denops.vim".
 
@@ -29,8 +32,8 @@ https://github.com/vim-denops/denops.vim
 
 
 ==============================================================================
-EXAMPLES			*ddu-filter-matcher_substring-examples*
->
+EXAMPLES                               *ddu-filter-matcher_substring-examples*
+>vim
 	call ddu#custom#patch_global(#{
 	    \   sourceOptions: #{
 	    \     _: #{
@@ -51,9 +54,9 @@ EXAMPLES			*ddu-filter-matcher_substring-examples*
 <
 
 ==============================================================================
-PARAMS				*ddu-filter-matcher_substring-params*
+PARAMS                                   *ddu-filter-matcher_substring-params*
 
-			*ddu-filter-matcher_substring-param-highlightMatched*
+                         *ddu-filter-matcher_substring-param-highlightMatched*
 highlightMatched (string)
 		The highlight of matched text.
 		Note: If you set it, the matching will be slower.
@@ -61,7 +64,7 @@ highlightMatched (string)
 
 		Default: ""
 
-			*ddu-filter-matcher_substring-param-limit*
+                                    *ddu-filter-matcher_substring-param-limit*
 limit (number)
 		The filter limit value.
 		If filtered items length is bigger than it, the filter is
