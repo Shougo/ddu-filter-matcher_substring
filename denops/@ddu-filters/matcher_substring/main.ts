@@ -6,6 +6,7 @@ import type { Denops } from "@denops/std";
 type Params = {
   highlightMatched: string;
   limit: number;
+  maxLength: number;
 };
 
 function charposToBytepos(input: string, pos: number): number {
@@ -33,9 +34,14 @@ export class Filter extends BaseFilter<Params> {
       x.replaceAll(/\\(?=\s)/g, "")
     );
     const limit = args.filterParams.limit;
+    const maxLength = args.filterParams.maxLength;
     const items = inputs.reduce(
       (items, input) =>
         items.filter(({ matcherKey }) => {
+          if (matcherKey.length > maxLength) {
+            return false;
+          }
+
           if (input.startsWith("!")) {
             const negatedInput = input.slice(1);
             return ignoreCase
@@ -100,6 +106,7 @@ export class Filter extends BaseFilter<Params> {
     return {
       highlightMatched: "",
       limit: 1000,
+      maxLength: 500,
     };
   }
 }
