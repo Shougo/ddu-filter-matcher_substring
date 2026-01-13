@@ -14,11 +14,17 @@ Params			|ddu-filter-matcher_substring-params|
 ==============================================================================
 INTRODUCTION                       *ddu-filter-matcher_substring-introduction*
 
-This matcher filters substring matched items.
+This matcher filters items based on substring matches.
 
-It supports narrowing inputs by spaces and "!" prefixed negative match.
+It supports narrowing inputs using spaces and "!" prefixed negative matches.
 
-If the input starts with "<", perform a regular expression match with word
+If the input starts with "^", it performs a prefix match, ensuring the
+substring matches the beginning of the string.
+
+If the input ends with "$", it performs a suffix match, ensuring the substring
+matches the end of the string.
+
+If the input starts with "<", it performs a regular expression match with word
 boundaries.
 
 

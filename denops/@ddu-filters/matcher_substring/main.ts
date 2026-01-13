@@ -42,10 +42,11 @@ export class Filter extends BaseFilter<Params> {
             return false;
           }
 
+          const lowerKey = matcherKey.toLowerCase();
           if (input.startsWith("!")) {
             const negatedInput = input.slice(1);
             return ignoreCase
-              ? !matcherKey.toLowerCase().includes(negatedInput.toLowerCase())
+              ? !lowerKey.includes(negatedInput.toLowerCase())
               : !matcherKey.includes(negatedInput);
           } else if (input.startsWith("<")) {
             // NOTE: If the input starts with "<", perform a regular expression
@@ -56,9 +57,22 @@ export class Filter extends BaseFilter<Params> {
             );
             const regex = new RegExp(`\\b${escaped}`, ignoreCase ? "i" : "");
             return regex.test(matcherKey);
-          } else {
+          } else if (input.startsWith("^")) {
+            // If the input starts with "^", match the beginning of the string
+            const prefix = input.slice(1);
             return ignoreCase
-              ? matcherKey.toLowerCase().includes(input.toLowerCase())
+              ? lowerKey.startsWith(prefix.toLowerCase())
+              : matcherKey.startsWith(prefix);
+          } else if (input.endsWith("$")) {
+            // If the input ends with "$", match the end of the string
+            const suffix = input.slice(0, -1);
+            return ignoreCase
+              ? lowerKey.endsWith(suffix.toLowerCase())
+              : matcherKey.endsWith(suffix);
+          } else {
+            // Default behavior: check if "input" is included in "matcherKey"
+            return ignoreCase
+              ? lowerKey.includes(input.toLowerCase())
               : matcherKey.includes(input);
           }
         }),
