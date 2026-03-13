@@ -60,7 +60,8 @@ export class Filter extends BaseFilter<Params> {
     const limit = args.filterParams.limit;
     const maxLength = args.filterParams.maxLength;
 
-    // Phase A: Sequential filtering to ensure 'limit' semantics are consistent.
+    // Phase A: Sequential filtering to ensure 'limit' semantics are
+    // consistent.
     let filtered: DduItem[] = args.items;
     for (const sub of inputs) {
       filtered = filtered.filter(({ matcherKey }) => {
@@ -110,7 +111,8 @@ export class Filter extends BaseFilter<Params> {
     }
 
     // Phase B: Highlight mapping (parallelizable).
-    // Make sure to NOT mutate shared arrays: create a shallow copy of highlights.
+    // Make sure to NOT mutate shared arrays: create a shallow copy of
+    // highlights.
     const encoder = new TextEncoder();
     // Default concurrency; core could pass this as an option in future.
     const concurrency = 4;
