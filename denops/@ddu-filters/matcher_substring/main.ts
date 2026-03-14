@@ -38,10 +38,6 @@ async function mapWithConcurrency<T, R>(
 }
 
 export class Filter extends BaseFilter<Params> {
-  // Indicate this filter's highlight stage is parallel-safe.
-  // Core should check this flag before parallelizing filters.
-  static parallelSafe = true;
-
   override async filter(args: FilterArguments<Params>): Promise<DduItem[]> {
     if (args.input === "") {
       return args.items;
