@@ -7,8 +7,66 @@ type Params = {
   maxLength: number;
 };
 
+type MatchMode = "negate" | "word" | "prefix" | "suffix" | "contains";
+
+type Token = {
+  mode: MatchMode;
+  value: string;
+};
+
 function charposToBytepos(input: string, pos: number): number {
   return (new TextEncoder()).encode(input.slice(0, pos)).length;
+}
+
+function escapeRegExp(input: string): string {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function parseToken(input: string): Token {
+  if (input.startsWith("!")) {
+    return { mode: "negate", value: input.slice(1) };
+  }
+  if (input.startsWith("<")) {
+    return { mode: "word", value: input.slice(1) };
+  }
+  if (input.startsWith("^")) {
+    return { mode: "prefix", value: input.slice(1) };
+  }
+  if (input.endsWith("$")) {
+    return { mode: "suffix", value: input.slice(0, -1) };
+  }
+  return { mode: "contains", value: input };
+}
+
+function splitInput(input: string): Token[] {
+  return input
+    .split(/(?<!\\)\s+/)
+    .filter((x) => x !== "")
+    .map((x) => x.replaceAll(/\\(?=\s)/g, ""))
+    .map(parseToken);
+}
+
+function matchesToken(
+  matcherKey: string,
+  token: Token,
+  ignoreCase: boolean,
+): boolean {
+  const key = ignoreCase ? matcherKey.toLowerCase() : matcherKey;
+  const value = ignoreCase ? token.value.toLowerCase() : token.value;
+
+  switch (token.mode) {
+    case "negate":
+      return !key.includes(value);
+    case "word":
+      return new RegExp(`\\b${escapeRegExp(value)}`, ignoreCase ? "i" : "")
+        .test(matcherKey);
+    case "prefix":
+      return key.startsWith(value);
+    case "suffix":
+      return key.endsWith(value);
+    case "contains":
+      return key.includes(value);
+  }
 }
 
 /** Small concurrency mapper that preserves input order. */
@@ -45,108 +103,64 @@ export class Filter extends BaseFilter<Params> {
 
     const ignoreCase = args.sourceOptions.ignoreCase &&
       !(args.sourceOptions.smartCase && /[A-Z]/.test(args.input));
-    const rawInput = args.input;
-    const input = ignoreCase ? rawInput.toLowerCase() : rawInput;
-
-    // Split input for matchers (same semantics as original)
-    const inputs = input.split(/(?<!\\)\s+/).filter((x) => x !== "").map((x) =>
-      x.replaceAll(/\\(?=\s)/g, "")
+    const tokens = splitInput(
+      ignoreCase ? args.input.toLowerCase() : args.input,
     );
 
-    const limit = args.filterParams.limit;
-    const maxLength = args.filterParams.maxLength;
-
-    // Phase A: Sequential filtering to ensure 'limit' semantics are
-    // consistent.
-    let filtered: DduItem[] = args.items;
-    for (const sub of inputs) {
-      filtered = filtered.filter(({ matcherKey }) => {
-        if (!matcherKey) return false;
-        if (matcherKey.length > maxLength) {
+    const filtered = args.items.filter((item) => {
+      if (!item.matcherKey) return false;
+      if (item.matcherKey.length > args.filterParams.maxLength) {
+        return false;
+      }
+      for (const token of tokens) {
+        if (!matchesToken(item.matcherKey, token, ignoreCase)) {
           return false;
         }
+      }
+      return true;
+    }).slice(0, args.filterParams.limit);
 
-        const lowerKey = matcherKey.toLowerCase();
-        if (sub.startsWith("!")) {
-          const negatedInput = sub.slice(1);
-          return ignoreCase
-            ? !lowerKey.includes(negatedInput.toLowerCase())
-            : !matcherKey.includes(negatedInput);
-        } else if (sub.startsWith("<")) {
-          // NOTE: If the input starts with "<", perform a regular expression
-          // match with word boundaries.
-          const escaped = sub.slice(1).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-          const regex = new RegExp(`\\b${escaped}`, ignoreCase ? "i" : "");
-          return regex.test(matcherKey);
-        } else if (sub.startsWith("^")) {
-          // If the input starts with "^", match the beginning of the string
-          const prefix = sub.slice(1);
-          return ignoreCase
-            ? lowerKey.startsWith(prefix.toLowerCase())
-            : matcherKey.startsWith(prefix);
-        } else if (sub.endsWith("$")) {
-          // If the input ends with "$", match the end of the string
-          const suffix = sub.slice(0, -1);
-          return ignoreCase
-            ? lowerKey.endsWith(suffix.toLowerCase())
-            : matcherKey.endsWith(suffix);
-        } else {
-          // Default behavior: check if "input" is included in "matcherKey"
-          return ignoreCase
-            ? lowerKey.includes(sub.toLowerCase())
-            : matcherKey.includes(sub);
-        }
-      });
-      if (filtered.length === 0) break;
-    }
-    filtered = filtered.slice(0, limit);
-
-    // If no highlight is requested, return filtered results directly.
     if (args.filterParams.highlightMatched === "") {
       return filtered;
     }
 
-    // Phase B: Highlight mapping (parallelizable).
-    // Make sure to NOT mutate shared arrays: create a shallow copy of
-    // highlights.
     const encoder = new TextEncoder();
-    // Default concurrency; core could pass this as an option in future.
     const concurrency = 4;
 
     const workerFn = (item: DduItem): DduItem => {
       const display = item.display ?? item.word;
-      const matcherKey = ignoreCase ? display.toLowerCase() : display;
-
+      const key = ignoreCase ? display.toLowerCase() : display;
       const previous = Array.isArray(item.highlights)
         ? item.highlights.slice()
         : [];
       const highlights: ItemHighlight[] = previous;
 
-      for (const subRaw of inputs) {
-        if (subRaw.startsWith("!")) {
+      for (const token of tokens) {
+        if (token.mode === "negate") {
           continue;
         }
 
-        const start = matcherKey.lastIndexOf(subRaw);
-        if (start >= 0) {
-          highlights.push({
-            name: "matched",
-            hl_group: args.filterParams.highlightMatched,
-            col: charposToBytepos(matcherKey, start) + 1,
-            width: encoder.encode(subRaw).length,
-          });
+        const needle = ignoreCase ? token.value.toLowerCase() : token.value;
+        const start = key.lastIndexOf(needle);
+        if (start < 0) {
+          continue;
         }
+
+        highlights.push({
+          name: "matched",
+          hl_group: args.filterParams.highlightMatched,
+          col: charposToBytepos(display, start) + 1,
+          width: encoder.encode(needle).length,
+        });
       }
 
-      // Return a new item; avoid mutating the original item object in-place.
       return {
         ...item,
         highlights,
       };
     };
 
-    const result = await mapWithConcurrency(filtered, concurrency, workerFn);
-    return result;
+    return await mapWithConcurrency(filtered, concurrency, workerFn);
   }
 
   override params(): Params {
